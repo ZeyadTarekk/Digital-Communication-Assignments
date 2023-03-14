@@ -1,45 +1,31 @@
-#--------------------------#
-# Magento Default Files    #
-#--------------------------#
+# Windows default autosave extension
+*.asv
 
-/PATCH_*.sh
+# OSX / *nix default autosave extension
+*.m~
 
-/app/etc/local.xml
+# Compiled MEX binaries (all platforms)
+*.mex*
 
-/media/*
-!/media/.htaccess
+# Packaged app and toolbox files
+*.mlappinstall
+*.mltbx
 
-!/media/customer
-/media/customer/*
-!/media/customer/.htaccess
+# Generated helpsearch folders
+helpsearch*/
 
-!/media/dhl
-/media/dhl/*
-!/media/dhl/logo.jpg
+# Simulink code generation folders
+slprj/
+sccprj/
 
-!/media/downloadable
-/media/downloadable/*
-!/media/downloadable/.htaccess
+# Matlab code generation folders
+codegen/
 
-!/media/xmlconnect
-/media/xmlconnect/*
+# Simulink autosave extension
+*.autosave
 
-!/media/xmlconnect/custom
-/media/xmlconnect/custom/*
-!/media/xmlconnect/custom/ok.gif
+# Simulink cache files
+*.slxc
 
-!/media/xmlconnect/original
-/media/xmlconnect/original/*
-!/media/xmlconnect/original/ok.gif
-
-!/media/xmlconnect/system
-/media/xmlconnect/system/*
-!/media/xmlconnect/system/ok.gif
-
-/var/*
-!/var/.htaccess
-
-!/var/package
-/var/package/*
-!/var/package/*.xml
-
+# Octave session info
+octave-workspace
