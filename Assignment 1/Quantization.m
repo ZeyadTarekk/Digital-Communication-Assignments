@@ -25,36 +25,36 @@ title('m = 1 (Midtread)');
 legend('Quantizer', 'Ramp Signal', 'Dequantizer');
 hold off
 
-% Testing the Quantizer
-in_val = [0.5, 1.2, -0.3, 2.1];
-n_bits = 3;
-xmax = 2;
-m = 0;
-q_ind = UniformQuantizer(in_val, n_bits, xmax, m);
-disp(q_ind);
-
-
 % Req 4
 randomSequence = unifrnd(-5,5,1,10000);
 
-for n = 2:8
-    
-    q2 = UniformQuantizer(randomSequence, n, 5, 0);
-    dq2 = UniformDequantizer(q2, n, 5, 0);
-    figure(n+1);
-    hold on
-    plot(randomSequence, q2);
-    plot(randomSequence, randomSequence);
-    plot(randomSequence, dq2);
-    title('m = 0');
-    legend('Quantizer', 'Ramp Signal', 'Dequantizer');
-    hold off
-    
+xmax = 5;
+m = 0;
+n_bits = [2, 3, 4, 5, 6, 7, 8];
+theoreticalSNR = zeros(1, length(n_bits));
+simulatedSNR = zeros(1, length(n_bits));
+Levels = 2 .^ n_bits;
+P = mean(randomSequence .^ 2);
+
+for i = 1:length(n_bits)
+    q2 = UniformQuantizer(randomSequence, n_bits(i), xmax, m);
+    dq2 = UniformDequantizer(q2, n_bits(i), xmax, m);
+    theoreticalSNR(i) = 10 * log10(P / (((xmax) .^ 2) / (3 * ((Levels(i) .^ 2)))));
+    quantizedError = randomSequence - dq2;
+    simulatedSNR(i) = 10 * log10(P / mean(quantizedError .^ 2));
 end
 
+figure(3);
+hold on
+plot(n_bits, theoreticalSNR, 'B-');
+plot(n_bits, simulatedSNR, 'Ro');
+xlabel('Number of Bits');
+ylabel('Theoretical SNR (in dB)');
+title('Uniform Random Variables');
+legend('Theoretical SNR', 'Simulation');
+hold off
 
-
-
+% Req 5
 
 % Req 1
 function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
@@ -67,8 +67,6 @@ function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
     % Define the range of the quantizer reconstruction levels
     d = (m*delta) / 2;
     levels = (d - xmax):delta:(d + xmax);
-    disp('Levels');
-    disp(levels);
     
     % Get size of the input
     size = length(in_val);
@@ -88,10 +86,12 @@ function deq_val = UniformDequantizer(q_ind, n_bits, xmax, m)
     % Calculate the number of levels
     numberOfLevels = 2 ^ n_bits;
     
-    % Get the width of each interval
+    % Calculate Delta
     delta = 2 * xmax / numberOfLevels;
-    d = (m*delta) / 2;
-    levels = (d - xmax):delta:(d + xmax);
     
+    % Get the Levels
+    levels = ((m*delta / 2) - xmax):delta:((m*delta / 2) + xmax);
+    
+    % Restore each level to original amplitude
     deq_val = levels(q_ind);
 end
