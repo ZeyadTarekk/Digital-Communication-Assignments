@@ -33,6 +33,29 @@ m = 0;
 q_ind = UniformQuantizer(in_val, n_bits, xmax, m);
 disp(q_ind);
 
+
+% Req 4
+randomSequence = unifrnd(-5,5,1,10000);
+
+for n = 2:8
+    
+    q2 = UniformQuantizer(randomSequence, n, 5, 0);
+    dq2 = UniformDequantizer(q2, n, 5, 0);
+    figure(n+1);
+    hold on
+    plot(randomSequence, q2);
+    plot(randomSequence, randomSequence);
+    plot(randomSequence, dq2);
+    title('m = 0');
+    legend('Quantizer', 'Ramp Signal', 'Dequantizer');
+    hold off
+    
+end
+
+
+
+
+
 % Req 1
 function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
     % Calculate the number of quantization levels
@@ -70,5 +93,5 @@ function deq_val = UniformDequantizer(q_ind, n_bits, xmax, m)
     d = (m*delta) / 2;
     levels = (d - xmax):delta:(d + xmax);
     
-    deq_val = levels(q_ind)
+    deq_val = levels(q_ind);
 end
