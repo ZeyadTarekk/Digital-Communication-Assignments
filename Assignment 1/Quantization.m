@@ -67,6 +67,8 @@ function deq_val = UniformDequantizer(q_ind, n_bits, xmax, m)
     
     % Get the width of each interval
     delta = 2 * xmax / numberOfLevels;
+    d = (m*delta) / 2;
+    levels = (d - xmax):delta:(d + xmax);
     
-    deq_val = ((q_ind) * delta) + ((m + 1) * (delta / 2) - xmax);
+    deq_val = levels(q_ind)
 end
