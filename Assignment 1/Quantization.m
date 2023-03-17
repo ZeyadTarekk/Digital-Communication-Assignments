@@ -1,4 +1,6 @@
-% Req 3
+close all;
+
+% ---------------- Req 3 ----------------
 ramp = -6:0.01:6;
 
 % m = 0
@@ -25,7 +27,7 @@ title('m = 1 (Midtread)');
 legend('Quantizer', 'Ramp Signal', 'Dequantizer');
 hold off
 
-% Req 4
+% ---------------- Req 4 ----------------
 randomSequence = unifrnd(-5,5,1,10000);
 
 xmax = 5;
@@ -54,9 +56,36 @@ title('Uniform Random Variables');
 legend('Theoretical SNR', 'Simulation');
 hold off
 
-% Req 5
+% ---------------- Req 5 ----------------
+polarity = 2 * randi([0 1], 1, 10000) - 1; % +/- with probability 0.5
+randomSequence_E = exprnd(0, 1, 10000) .* polarity;
 
-% Req 1
+theoreticalSNR_E = zeros(1, length(n_bits));
+simulatedSNR_E = zeros(1, length(n_bits));
+signalPower = var(randomSequence_E);
+P = mean(randomSequence_E .^ 2);
+
+for i = 1:length(n_bits)
+    q = UniformQuantizer(randomSequence_E, n_bits(i), xmax, m);
+    dq = UniformDequantizer(q, n_bits(i), xmax, m);
+    errorPower = mean(dq - randomSequence_E) ^ 2;
+    theoreticalSNR_E(i) = 10 * log10(P / (((xmax) .^ 2) / (3 * ((Levels(i) .^ 2)))));
+    simulatedSNR_E(i) = signalPower / errorPower;
+end
+
+figure(4);
+hold on
+plot(n_bits, theoreticalSNR_E, 'B-');
+plot(n_bits, simulatedSNR_E, 'Ro');
+xlabel('Number of Bits');
+ylabel('Theoretical SNR (in dB)');
+title('Non-uniform Random Input');
+legend('Theoretical SNR', 'Simulation');
+hold off
+
+% ---------------- Req 6 ----------------
+
+% ---------------- Req 1 ----------------
 function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
     % Calculate the number of quantization levels
     numberOfLevels = 2^n_bits;
@@ -81,7 +110,7 @@ function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
     end
 end
 
-% Req 2
+% ---------------- Req 2 ----------------
 function deq_val = UniformDequantizer(q_ind, n_bits, xmax, m)
     % Calculate the number of levels
     numberOfLevels = 2 ^ n_bits;
