@@ -1,24 +1,28 @@
 % Req 3
 ramp = -6:0.01:6;
+
 % m = 0
 q0 = UniformQuantizer(ramp, 3, 6, 0);
 dq0 = UniformDequantizer(q0, 3, 6, 0);
 figure(1);
 hold on
 plot(ramp, q0);
-plot(ramp,ramp);
-plot(ramp,dq0);
-title('m = 0');
+plot(ramp, ramp);
+plot(ramp, dq0);
+title('m = 0 (Midrise)');
+legend('Quantizer', 'Ramp Signal', 'Dequantizer');
 hold off
+
 % m = 1
 q1 = UniformQuantizer(ramp, 3, 6, 1);
 dq1 = UniformDequantizer(q1, 3, 6, 1);
 figure(2);
 hold on
 plot(ramp, q1);
-plot(ramp,ramp);
-plot(ramp,dq1);
-title('m = 1');
+plot(ramp, ramp);
+plot(ramp, dq1);
+title('m = 1 (Midtread)');
+legend('Quantizer', 'Ramp Signal', 'Dequantizer');
 hold off
 
 % Testing the Quantizer
@@ -39,7 +43,7 @@ function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
     
     % Define the range of the quantizer reconstruction levels
     d = (m*delta) / 2;
-    levels = linspace(-xmax + delta/2, xmax - delta/2, numberOfLevels) + d;
+    levels = (d - xmax):delta:(d + xmax);
     disp('Levels');
     disp(levels);
     
@@ -56,13 +60,13 @@ function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
     end
 end
 
-
-
+% Req 2
 function deq_val = UniformDequantizer(q_ind, n_bits, xmax, m)
-
     % Calculate the number of levels
     numberOfLevels = 2 ^ n_bits;
+    
     % Get the width of each interval
     delta = 2 * xmax / numberOfLevels;
+    
     deq_val = ((q_ind) * delta) + ((m + 1) * (delta / 2) - xmax);
 end
