@@ -16,6 +16,7 @@ dq1 = UniformDequantizer(q1, 3, 6, 1);
 figure(2);
 hold on
 plot(ramp, q1);
+plot(ramp,ramp);
 plot(ramp,dq1);
 title('m = 1');
 hold off
