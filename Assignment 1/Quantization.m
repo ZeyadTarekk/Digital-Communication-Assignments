@@ -1,123 +1,184 @@
 close all;
+clear all;
 
 % ---------------- Req 3 ----------------
 ramp = -6:0.01:6;
 
 % m = 0
-q0 = UniformQuantizer(ramp, 3, 6, 0);
-dq0 = UniformDequantizer(q0, 3, 6, 0);
+q = UniformQuantizer(ramp, 3, 6, 0);
+dq = UniformDequantizer(q, 3, 6, 0);
 figure();
 hold on
-plot(ramp, q0);
+plot(ramp, q);
 plot(ramp, ramp);
-plot(ramp, dq0);
-title('m = 0 (Midrise)');
+plot(ramp, dq);
+title('m = 0 - Midrise (Ramp)');
 legend('Quantizer', 'Ramp Signal', 'Dequantizer');
 hold off
 
 % m = 1
-q1 = UniformQuantizer(ramp, 3, 6, 1);
-dq1 = UniformDequantizer(q1, 3, 6, 1);
+q = UniformQuantizer(ramp, 3, 6, 1);
+dq = UniformDequantizer(q, 3, 6, 1);
 figure();
 hold on
-plot(ramp, q1);
+plot(ramp, q);
 plot(ramp, ramp);
-plot(ramp, dq1);
-title('m = 1 (Midtread)');
+plot(ramp, dq);
+title('m = 1 - Midtread (Ramp)');
 legend('Quantizer', 'Ramp Signal', 'Dequantizer');
 hold off
 
 % ---------------- Req 4 ----------------
-randomSequence = unifrnd(-5,5,1,10000);
+% Continuous Uniform Random Variables between -5 & 5
+N = 10000;
+lowerBound = -5;
+upperBound = 5;
+input = unifrnd(lowerBound, upperBound, 1, N);
 
+% Set xmax = 5 & m to midrise as given in the requirement
 xmax = 5;
 m = 0;
-n_bits = [2, 3, 4, 5, 6, 7, 8];
-theoreticalSNR = zeros(1, length(n_bits));
-simulatedSNR = zeros(1, length(n_bits));
-Levels = 2 .^ n_bits;
-P = mean(randomSequence .^ 2);
 
-for i = 1:length(n_bits)
-    q2 = UniformQuantizer(randomSequence, n_bits(i), xmax, m);
-    dq2 = UniformDequantizer(q2, n_bits(i), xmax, m);
+% Define the number of bits array & get its length
+n_bits = [2, 3, 4, 5, 6, 7, 8];
+len = length(n_bits);
+
+% Initialize Theoretical and Simulated SNR
+theoreticalSNR = zeros(1, len);
+simulatedSNR = zeros(1, len);
+
+% Define the levels array (2 ^ n) & calculate P
+Levels = 2 .^ n_bits;
+P = mean(input .^ 2);
+
+for i = 1:len
+    % Get the dequantized signal with corresponding inputs
+    q = UniformQuantizer(input, n_bits(i), xmax, m);
+    dq = UniformDequantizer(q, n_bits(i), xmax, m);
+    
+    % Calculate the Theoretical SNR for each number of bits
     theoreticalSNR(i) = 10 * log10(P / (((xmax) .^ 2) / (3 * ((Levels(i) .^ 2)))));
-    quantizedError = randomSequence - dq2;
+    
+    % Get the quantization error by subtracting input values & the
+    % dequantized signal
+    quantizedError = input - dq;
+    
+    % Calculate the simulated SNR using the quantized error
     simulatedSNR(i) = 10 * log10(P / mean(quantizedError .^ 2));
 end
 
+% Sketching the simulation & Theoretical SNR
 figure();
 hold on
 plot(n_bits, theoreticalSNR, 'B-');
 plot(n_bits, simulatedSNR, 'Ro');
 xlabel('Number of Bits');
-ylabel('Theoretical SNR (in dB)');
+ylabel('SNR (in dB)');
 title('Uniform Random Variables');
 legend('Theoretical SNR', 'Simulation');
 hold off
 
 % ---------------- Req 5 ----------------
-polarity = 2 * randi([0 1], 1, 10000) - 1; % +/- with probability 0.5
-randomSequence_E = exprnd(0.0001, 1, 10000) .* polarity;
+% Define polarity & give it a value +/- with probability 0.5
+polarity = 2 * randi([0 1], 1, N) - 1;
 
-theoreticalSNR_E = zeros(1, length(n_bits));
-simulatedSNR_E = zeros(1, length(n_bits));
-signalPower = var(randomSequence_E);
-P = mean(randomSequence_E .^ 2);
-xmax = max(abs(randomSequence_E));
+% Sample magnitude following an exponential distribution
+magnitude = exprnd(1, 1, N);
 
-for i = 1:length(n_bits)
-    q = UniformQuantizer(randomSequence_E, n_bits(i), xmax, m);
+% Apply the random polarity to magnitude
+input = magnitude .* polarity;
+
+% Re-initialize Theoretical & Simulated SNR
+theoreticalSNR = zeros(1, len);
+simulatedSNR = zeros(1, len);
+
+% Calculate signal power as the variance of the input
+signalPower = var(input);
+
+% Re-define P & xmax accordingly (m is still 0)
+P = mean(input .^ 2);
+xmax = max(abs(input));
+
+for i = 1:len
+    % Get the dequantized signal with corresponding inputs
+    q = UniformQuantizer(input, n_bits(i), xmax, m);
     dq = UniformDequantizer(q, n_bits(i), xmax, m);
-    errorPower = mean((dq - randomSequence_E) .^ 2);
-    theoreticalSNR_E(i) = 10 * log10(P / (((xmax) .^ 2) / (3 * ((Levels(i) .^ 2)))));
-    simulatedSNR_E(i) = 10 * log10(signalPower / errorPower);
+    
+    % Calculate the error power
+    errorPower = mean((dq - input) .^ 2);
+    
+    % Get theoratical SNR (similar to Req 4)
+    theoreticalSNR(i) = 10 * log10(P / (((xmax) .^ 2) / (3 * ((Levels(i) .^ 2)))));
+    
+    % Define simulated SNR as signal power divided by error power
+    simulatedSNR(i) = 10 * log10(signalPower / errorPower);
 end
 
+% Plot
 figure();
 hold on
-plot(n_bits, theoreticalSNR_E, 'B-');
-plot(n_bits, simulatedSNR_E, 'Ro');
+plot(n_bits, theoreticalSNR, 'B-');
+plot(n_bits, simulatedSNR, 'R--');
 xlabel('Number of Bits');
-ylabel('Theoretical SNR (in dB)');
+ylabel('SNR (in dB)');
 title('Non-uniform Random Input');
 legend('Theoretical SNR', 'Simulation');
 hold off
 
 % ---------------- Req 6 ----------------
-mu = [0.0001, 5, 100, 200];
-figCounter = 5;
-for i = 1:length(mu)
-    randomSequence_uE = exprnd(mu(i), 1, 10000) .* polarity;
-    randomSequence_uE = randomSequence_uE / max(abs(randomSequence_uE));
-    
-    theoreticalSNR_uE = zeros(1, length(n_bits));
-    simulatedSNR_uE = zeros(1, length(n_bits));
-    signalPower = var(randomSequence_uE);
-    P = mean(randomSequence_uE .^ 2);
-    xmax = max(abs(randomSequence_uE));
-    
-    for j = 1:length(n_bits)
-        compressedSignal = sign(randomSequence_uE) .* log(1 + mu(i) * abs(randomSequence_uE)) / log(1 + mu(i));
-        q = UniformQuantizer(compressedSignal, n_bits(j), xmax, m);
-        dq = UniformDequantizer(q, n_bits(j), xmax, m);
-        expandedSignal = sign(dq) .* (1 / mu(i)) .* ((1 + mu(i)) .^ abs(dq) - 1);
-        denormalizedSignal = expandedSignal * max(abs(randomSequence_uE));
-        errorPower = mean((dq - denormalizedSignal) .^ 2);
-        theoreticalSNR_uE(j) = 10 * log10(P / (((xmax) .^ 2) / (3 * ((Levels(j) .^ 2)))));
-        simulatedSNR_uE(j) = 10 * log10(signalPower / errorPower);
-    end
+% Non-uniform mu quantization
+mu = [0 ,5, 100, 200];
+colors = ['r' , 'b' , 'g' , 'k'];
 
-    figure();
-    hold on
-    plot(n_bits, theoreticalSNR_uE, 'B-');
-    plot(n_bits, simulatedSNR_uE, 'R-');
-    xlabel('Number of Bits');
-    ylabel('Theoretical SNR (in dB)');
-    title('Different Mu(s)');
-    legend('Theoretical SNR', 'Simulation');
-    hold off
-end
+% Normalize the Input
+input_N = input / xmax;
+
+figure();
+hold on
+for j = 1:length(mu)
+    % Initialize Theoretical and Simulated SNR
+    simulatedSNR = n_bits;
+    theoreticalSNR = zeros(1, len);
+   
+    for i = 1:len
+        % Compress the Signal if mu is greater than zero
+        if (mu(j) > 0)
+            y = polarity .* (log(1+mu(j) * abs(input_N)) / log(1+mu(j)));
+        else
+            y = input_N;
+        end
+        
+        ymax = max(abs(y));
+        
+        q = UniformQuantizer(y, n_bits(i), ymax, m);
+        dq = UniformDequantizer(q, n_bits(i), ymax, m);
+
+        if (mu(j) > 0)
+            z = polarity .*(((1+mu(j)) .^ abs(dq)-1) / mu(j));
+        else
+            z =  dq;
+        end
+        
+        ex = z * xmax;
+        
+        error = abs(input - ex);
+        simulatedSNR(i) = 10*log10(mean(input .^ 2) / mean(error .^ 2));
+        
+        if (mu(j) > 0)
+            theoreticalSNR(i) = 10*log10((3*(Levels(i) .^ 2))/((log(1 + mu(j))) .^ 2));
+        else
+            theoreticalSNR(i) = 10*log10(P / (((xmax) .^ 2) / (3 * ((Levels(i) .^ 2)))));
+        end
+    end
+    
+    % Plot
+    plot(n_bits, theoreticalSNR, sprintf('%s-' , colors(j))  , 'LineWidth', 1);
+    plot(n_bits, simulatedSNR, sprintf('%s--' , colors(j)) , 'LineWidth', 1);
+end    
+hold off
+
+legend('mu=0 (T)', 'mu=0 (S)', 'mu=5 (T)', 'mu=5 (S)', 'mu=100 (T)', 'mu=100 (S)', ...
+       'mu=200 (T)', 'mu=200 (S)');
 
 % ---------------- Req 1 ----------------
 function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
