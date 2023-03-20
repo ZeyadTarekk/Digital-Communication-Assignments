@@ -190,7 +190,7 @@ function q_ind = UniformQuantizer(in_val, n_bits, xmax, m)
     
     % Define the range of the quantizer reconstruction levels
     d = ((1 - m)*delta) / 2;
-    levels = (d - xmax):delta:(d + xmax);
+    levels = (-xmax - d + delta):delta:(xmax - d);
     
     % Get size of the input
     size = length(in_val);
@@ -214,7 +214,8 @@ function deq_val = UniformDequantizer(q_ind, n_bits, xmax, m)
     delta = 2 * xmax / numberOfLevels;
     
     % Get the Levels
-    levels = (((1 - m)*delta / 2) - xmax):delta:(((1 - m)*delta / 2) + xmax);
+    d = ((1 - m)*delta) / 2;
+    levels = (-xmax - d + delta):delta:(xmax - d);
     
     % Restore each level to original amplitude
     deq_val = levels(q_ind);
