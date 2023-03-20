@@ -177,6 +177,9 @@ for j = 1:length(mu)
 end    
 hold off
 
+title('Non-uniform Mu Law Quantizer');
+xlabel('Number of bits');
+ylabel('SNR (in dB)');
 legend('mu=0 (T)', 'mu=0 (S)', 'mu=5 (T)', 'mu=5 (S)', 'mu=100 (T)', 'mu=100 (S)', ...
        'mu=200 (T)', 'mu=200 (S)');
 
