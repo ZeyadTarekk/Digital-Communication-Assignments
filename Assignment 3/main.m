@@ -75,7 +75,7 @@ plot([0, s2_v1], [0, s2_v2], 'b', 'LineWidth', 1.5);
 title('Signal Space Representation');
 xlabel('Projection onto \phi_1(t)');
 ylabel('Projection onto \phi_2(t)');
-legend('Location', 'best');
+legend('S1', 'S2');
 axis([-0.1 1.1 -0.1 1]);
 grid on;
 
@@ -105,14 +105,14 @@ for i = 1:L
         % Convert dB to linear scale
         val = 10^(values(i)/10);
 
-        % Calculate standard deviation
+        % Calculate the standard deviation
         sigma = 1 / sqrt(val);
 
-        % Noise Signals
-        w1 = sqrt(sigma) * randn(len_s1);
+        % Noise Signals w1 & w2 to be added to s1 & s2
+        w1 = sigma * randn(len_s1);
         w2 = sigma * randn(len_s2);
 
-        % Generate samples of r1(t) and r2(t) using s1(t) and s2(t)
+        % Generate samples of r1(t) and r2(t) using s1(t) and s2(t) & noise
         r1 = s1 + w1;
         r2 = s2 + w2;
 
@@ -129,19 +129,29 @@ for i = 1:L
     
     % Plot the signal points of generated samples of r1 & r2
     figure;
+    % Plot r1 samples
     scatter(r1V1, r1V2, 'DisplayName', 'r1');
     hold on;
+    % Plot r2 samples
     scatter(r2V1, r2V2, 'DisplayName', 'r2');
     hold on
-    scatter(s1_v1, s1_v2, 150, 'filled', 'MarkerFaceColor', 'red', 'DisplayName', 's1');
+    % Plot the input signal s1(t)
+    scatter(s1_v1, s1_v2, 110, 'filled', 'MarkerFaceColor', 'red', 'DisplayName', 's1');
     hold on
-    scatter(s2_v1, s2_v2, 150, 'filled', 'MarkerFaceColor', 'blue', 'DisplayName', 's2');
+    % Plot the input signal s2(t)
+    scatter(s2_v1, s2_v2, 110, 'filled', 'MarkerFaceColor', 'blue', 'DisplayName', 's2');
+    % Title/xLabel/yLabel
     title(sprintf('Signal Points (sigma^2 = %ddB)', values(i)));
     xlabel('Projection onto \phi_1');
     ylabel('Projection onto \phi_2');
+    legend('r1', 'r2', 's1', 's2');
+    axis([-0.1 1.1 -0.1 1.1]);
 end
 
 function [phi1, phi2] = GM_Bases(s1, s2)
+    % sq_s1 = s1.^2;
+    % energy = sum(sq_s1);
+    % disp(energy);
     % Calculate the first basis function (phi1)
     phi1 = s1 / norm(s1);
 
