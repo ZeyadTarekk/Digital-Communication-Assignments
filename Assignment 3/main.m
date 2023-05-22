@@ -3,7 +3,7 @@ clear all;
 close all;
 
 % Time axis
-N = 20;
+N = 100;
 T = linspace(0, 1, N);
 
 % Input signal s1(t)
@@ -13,8 +13,8 @@ s1 = ones(1, N);
 s2 = zeros(1, N);
 
 % Setting from 0 to 0.75 as 1, else -1 
-s2(1:15) = 1;
-s2(16:end) = -1;
+s2(1: floor(0.75 * N)) = 1;
+s2(floor(0.75 * N) + 1:end) = -1;
 
 % Plot s1(t)
 figure;
@@ -109,10 +109,22 @@ for i = 1:L
     for sample = 1:numberOfSamples
         % Convert dB to linear scale
         val = 10^(values(i)/10);
+        
+        sq_s1 = s1.^2;
+        sq_s2 = s2.^2;
+        
+        energy1 = sum(sq_s1);
+        energy2 = sum(sq_s2);
+        
+        sigma1 = sqrt(energy1 / val);
+        sigma2 = sqrt(energy2 / val);
 
         % Add noise to the original signal
-        r1 = awgn(s1, val);
-        r2 = awgn(s2, val);
+        w1 = sigma1 * randn(sz_s1);
+        w2 = sigma2 * randn(sz_s2);
+        
+        r1 = w1 + s1;
+        r2 = w2 + s2;
 
         % Calculate the signal points of the input using signal_space function
         [r1_v1, r1_v2] = signal_space(r1, phi1, phi2);
@@ -143,47 +155,24 @@ for i = 1:L
     xlabel('Projection onto \phi_1');
     ylabel('Projection onto \phi_2');
     legend('r1', 'r2', 's1', 's2');
-    axis([-0.1 1.1 -0.1 1.1]);
+    %axis([-4 5 -1 2]);
 end
 
 function [phi1, phi2] = GM_Bases(s1, s2)
-    % Getting each signal length
-    len_s1 = length(s1);
-    len_s2 = length(s2);
-    
-    % Signal Energy
-    sq_s1 = s1.^2;
-    energy = sum(sq_s1);
-    disp(energy);
-    
     % Calculate the first basis function (phi1)
-    phi1 = s1 / sqrt(energy);
-    phi1 = phi1 * sqrt(len_s1);
-    
-    % Calculate s21
-    s21 = sum(s2.*phi1) / len_s2;
-    
-    % g = s2 - (s21)(phi1)
-    g2 = s2 - s21.*phi1;
-    
-    % Energy for s2 then we get phi2 using g2 like we did in the tutorial
-    energy2 = sum(g2.^2);
-    phi2 = g2 / sqrt(energy2);
-    phi2 = phi2 * sqrt(len_s2);
+    phi1 = s1 / norm(s1);
 
     % Check if s2 is linearly independent from s1
-    %if dot(s2, phi1) ~= 0
+    if dot(s2, phi1) ~= 0
         % Calculate the second basis function (phi2)
-       % phi2 = s2 - dot(s2, phi1) * phi1;
-       % phi2 = phi2 / norm(phi2);
-    %else
+        phi2 = s2 - dot(s2, phi1) * phi1;
+        phi2 = phi2 / norm(phi2);
+    else
         % s2 is linearly dependent on s1, so phi2 is a zero vector
-       % phi2 = zeros(size(s2));
-    %end
-    
-    % Multiplying by the square root of signal length
-    % phi1 = phi1 * sqrt(len_s1);
-    % phi2 = phi2 * sqrt(len_s2);
+        phi2 = zeros(size(s2));
+    end
+    phi1 = phi1 * sqrt(length(s1));
+    phi2 = phi2 * sqrt(length(s2));
 end
 
 function [v1, v2] = signal_space(s, phi1, phi2)
